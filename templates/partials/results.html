@@ -1,0 +1,152 @@
+{% if error %}
+  <div class="alert alert-warning d-flex align-items-center" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <div>{{ error }}</div>
+  </div>
+{% elif search %}
+<div class="card" id="results-card">
+  <div class="card-body">
+    <!-- Summary bar -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <div>
+        <h5 class="mb-0">
+          <i class="bi bi-building"></i>
+          {{ total }} result{{ total|pluralize }} for
+          <span class="text-primary">{{ search.business_type }}</span>
+          in <span class="text-primary">{{ search.location }}</span>
+        </h5>
+        <small class="text-muted">
+          {% if search.display_name %}{{ search.display_name }} · {% endif %}
+          {% if duration %}fetched in {{ duration }}s{% endif %}
+        </small>
+      </div>
+      <a class="btn btn-success"
+         href="{% url 'leads:export' search.id %}?size={{ size }}">
+        <i class="bi bi-file-earmark-excel"></i> Export Excel
+      </a>
+    </div>
+
+    <!-- Controls: lead-count selector + in-table search -->
+    <div class="row g-2 align-items-center mb-3">
+      <div class="col-md-7">
+        <div class="btn-group" role="group" aria-label="Lead count">
+          <span class="align-self-center me-2 text-muted small">Show:</span>
+          {% for sz in page_sizes %}
+            <button class="btn btn-sm {% if size == sz %}btn-brand{% else %}btn-outline-secondary{% endif %}"
+              hx-get="{% url 'leads:results' search.id %}?size={{ sz }}&sort={{ sort }}&dir={{ dir }}&q={{ q|urlencode }}"
+              hx-target="#results" hx-swap="innerHTML">
+              {{ sz|upper }}
+            </button>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-md-5">
+        <input type="search" class="form-control form-control-sm"
+          name="q" value="{{ q }}" placeholder="Search within results…"
+          hx-get="{% url 'leads:results' search.id %}?size={{ size }}&sort={{ sort }}&dir={{ dir }}"
+          hx-trigger="keyup changed delay:350ms, search"
+          hx-target="#results" hx-swap="innerHTML"
+          hx-include="this" />
+      </div>
+    </div>
+
+    <!-- Results table -->
+    <div class="table-responsive">
+      <table class="table table-hover table-striped align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            {% with base="?size="|add:size %}
+            <th hx-get="{% url 'leads:results' search.id %}?size={{ size }}&q={{ q|urlencode }}&sort=name&dir={% if sort == 'name' and dir == 'asc' %}desc{% else %}asc{% endif %}"
+                hx-target="#results" hx-swap="innerHTML">
+              Name {% if sort == 'name' %}<i class="bi bi-caret-{% if dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>{% endif %}
+            </th>
+            <th hx-get="{% url 'leads:results' search.id %}?size={{ size }}&q={{ q|urlencode }}&sort=category&dir={% if sort == 'category' and dir == 'asc' %}desc{% else %}asc{% endif %}"
+                hx-target="#results" hx-swap="innerHTML">
+              Category {% if sort == 'category' %}<i class="bi bi-caret-{% if dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>{% endif %}
+            </th>
+            <th hx-get="{% url 'leads:results' search.id %}?size={{ size }}&q={{ q|urlencode }}&sort=address&dir={% if sort == 'address' and dir == 'asc' %}desc{% else %}asc{% endif %}"
+                hx-target="#results" hx-swap="innerHTML">
+              Address {% if sort == 'address' %}<i class="bi bi-caret-{% if dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>{% endif %}
+            </th>
+            <th hx-get="{% url 'leads:results' search.id %}?size={{ size }}&q={{ q|urlencode }}&sort=phone&dir={% if sort == 'phone' and dir == 'asc' %}desc{% else %}asc{% endif %}"
+                hx-target="#results" hx-swap="innerHTML">
+              Phone {% if sort == 'phone' %}<i class="bi bi-caret-{% if dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>{% endif %}
+            </th>
+            {% endwith %}
+            <th>Website</th>
+            <th>Maps</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for biz in page_obj %}
+          <tr>
+            <td class="fw-semibold">{{ biz.name|default:"—" }}</td>
+            <td><span class="badge badge-soft">{{ biz.category|default:"—" }}</span></td>
+            <td class="small">{{ biz.address|default:"—" }}</td>
+            <td>
+              {% if biz.phone %}
+                <a href="tel:{{ biz.phone }}">{{ biz.phone }}</a>
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              {% if biz.website %}
+                <a href="{{ biz.website }}" target="_blank" rel="noopener">
+                  <i class="bi bi-box-arrow-up-right"></i> Visit
+                </a>
+              {% else %}—{% endif %}
+            </td>
+            <td class="text-nowrap">
+              {% if biz.osm_link %}
+                <a class="maps-link" href="{{ biz.osm_link }}" target="_blank" rel="noopener" title="OpenStreetMap">
+                  <i class="bi bi-map"></i>
+                </a>
+              {% endif %}
+              {% if biz.google_maps_link %}
+                <a class="maps-link ms-2" href="{{ biz.google_maps_link }}" target="_blank" rel="noopener" title="Google Maps">
+                  <i class="bi bi-geo-alt-fill"></i>
+                </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center text-muted py-4">
+              No businesses matched your filter.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="mt-3">
+      <ul class="pagination justify-content-center mb-0 flex-wrap">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" style="cursor:pointer"
+             hx-get="{% url 'leads:results' search.id %}?size={{ size }}&sort={{ sort }}&dir={{ dir }}&q={{ q|urlencode }}&page={{ page_obj.previous_page_number }}"
+             hx-target="#results" hx-swap="innerHTML">&laquo;</a>
+        </li>
+        {% endif %}
+        <li class="page-item disabled">
+          <span class="page-link">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+          </span>
+        </li>
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" style="cursor:pointer"
+             hx-get="{% url 'leads:results' search.id %}?size={{ size }}&sort={{ sort }}&dir={{ dir }}&q={{ q|urlencode }}&page={{ page_obj.next_page_number }}"
+             hx-target="#results" hx-swap="innerHTML">&raquo;</a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+  {% include "partials/empty.html" %}
+{% endif %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Search History · Business Lead Finder{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-clock-history"></i> Search History</h2>
+
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Business Type</th>
+            <th>Location</th>
+            <th class="text-end">Results</th>
+            <th class="text-end">Time (s)</th>
+            <th class="text-end">Date</th>
+            <th class="text-end">Export</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in searches %}
+          <tr>
+            <td class="fw-semibold">{{ s.business_type }}</td>
+            <td>{{ s.location }}</td>
+            <td class="text-end">{{ s.total_results }}</td>
+            <td class="text-end">{{ s.duration_seconds }}</td>
+            <td class="text-end small text-muted">{{ s.created_at|date:"M d, Y H:i" }}</td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-success"
+                 href="{% url 'leads:export' s.id %}?size=all">
+                <i class="bi bi-file-earmark-excel"></i>
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">No searches yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

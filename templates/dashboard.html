@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Business Lead Finder{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-speedometer2"></i> Dashboard</h2>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="card stat-card h-100">
+      <div class="card-body">
+        <div class="text-muted small">Total Searches</div>
+        <div class="display-6 text-primary">{{ stats.total_searches }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card stat-card h-100">
+      <div class="card-body">
+        <div class="text-muted small">Businesses Found</div>
+        <div class="display-6 text-success">{{ stats.total_businesses }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card stat-card h-100">
+      <div class="card-body">
+        <div class="text-muted small">Total Exports</div>
+        <div class="display-6 text-warning">{{ stats.total_exports }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card stat-card h-100">
+      <div class="card-body">
+        <div class="text-muted small">Today's Searches</div>
+        <div class="display-6 text-info">{{ stats.today_searches }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white fw-semibold">
+        <i class="bi bi-bar-chart"></i> Top Business Types
+      </div>
+      <div class="card-body p-0">
+        <table class="table mb-0">
+          <thead class="table-light">
+            <tr><th>Business Type</th><th class="text-end">Searches</th><th class="text-end">Leads</th></tr>
+          </thead>
+          <tbody>
+            {% for row in top_types %}
+            <tr>
+              <td>{{ row.business_type }}</td>
+              <td class="text-end">{{ row.count }}</td>
+              <td class="text-end">{{ row.leads|default:0 }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-center text-muted py-3">No data yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white fw-semibold">
+        <i class="bi bi-clock-history"></i> Recent Searches
+      </div>
+      <div class="card-body p-0">
+        <table class="table mb-0">
+          <thead class="table-light">
+            <tr><th>Query</th><th class="text-end">Results</th><th class="text-end">When</th></tr>
+          </thead>
+          <tbody>
+            {% for s in recent %}
+            <tr>
+              <td>{{ s.business_type }} · {{ s.location }}</td>
+              <td class="text-end">{{ s.total_results }}</td>
+              <td class="text-end small text-muted">{{ s.created_at|date:"M d, H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-center text-muted py-3">No searches yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
