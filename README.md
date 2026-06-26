@@ -1,234 +1,467 @@
-# Business Lead Finder
+# FORGE.OS — Lead Intelligence Operator Terminal
 
-A complete, production-ready **Django** web application that finds local
-business leads by **business type** and **location**, using only **free
-OpenStreetMap services** — no Google Places API, no billing, no subscriptions.
+**Production-ready Django web application** for extracting, verifying, and enriching business leads using **100% free OpenStreetMap APIs**.
 
-Search examples that work out of the box:
-
-| Business Type | Location  |
-|---------------|-----------|
-| Bakery        | Chromepet |
-| Cake Shop     | Chennai   |
-| Gym           | Tambaram  |
-| Dental Clinic | Velachery |
-
-Results can be browsed in a fast, sortable, paginated table and exported to
-`business_leads.xlsx` with one click.
+Dark operator terminal with HTMX real-time updates, premium tables, analytics dashboard, and instant Excel/CSV exports.
 
 ---
 
-## Features
+## 🎯 Features
 
-- **Search** by business type + location (HTMX-powered, no full page reloads).
-- **Free geocoding** via **Nominatim** (location → coordinates).
-- **Free business data** via the **Overpass API** (businesses around a point).
-- **Rich business info**: name, category, address, latitude, longitude,
-  OpenStreetMap link, Google Maps search link, phone and website (when
-  available). Missing values are handled gracefully.
-- **Modern results table** with pagination, column sorting, and "search within
-  results" — fully mobile responsive (Bootstrap 5).
-- **Lead-count selector**: `50 / 100 / 200 / All` to choose how many records to
-  prepare for export.
-- **Excel export** (`business_leads.xlsx`) generated with **OpenPyXL**,
-  including clickable links and a styled header.
-- **Search history** (business type, location, date, total results, duration).
-- **Dashboard** with totals: searches, businesses found, exports, today's
-  searches, and top business types.
-- **Django Admin**: view searches/businesses, **delete duplicates**, and
-  **export selected leads** to Excel.
-- **Performance**: response caching (geocoding + Overpass), database indexing,
-  bulk inserts, connection pooling, multiple Overpass mirrors, and HTMX partial
-  updates. Cached searches return in well under five seconds.
+### 5 Extraction Modules
+
+1. **Google Maps Extraction** — Local business data from OpenStreetMap
+   - Search by business type + location
+   - Radius search (configurable)
+   - Name, category, address, phone, website, coordinates
+   - < 5 second searches, fully cached
+
+2. **LinkedIn Lead Gen** — Compliant professional profile intake
+   - Paste search results or LinkedIn URLs
+   - Parse company, role, industry, company size
+   - No automated scraping (respects ToS)
+
+3. **Website Scraper** — Extract contact intelligence
+   - Emails, phone numbers, social profiles
+   - Crawl internal pages (configurable depth)
+   - Metadata extraction (title, description)
+
+4. **Email Finder & Verifier** — Generate & verify professional emails
+   - Pattern generation (firstname.lastname@, f.lastname@, etc.)
+   - Free MX record verification
+   - SMTP verification (best-effort)
+   - Confidence scoring
+
+5. **AI Enrichment** — Augment leads with AI
+   - Website scrape → LLM summary
+   - Industry, employee count, technologies
+   - AI lead score (0-100)
+   - Powered by your LLM (OpenAI-compatible)
+
+### Dashboard & Analytics
+
+- **Metrics** — Total leads, today's searches, successful extractions, enriched leads, exports
+- **Charts** — Daily search volume, lead growth, industry breakdown (Chart.js)
+- **Recent jobs** — Live extraction history with status
+- **Usage tracking** — Billing & export activity
+
+### Premium Results Table
+
+- **Sortable columns** — Click headers to sort
+- **In-table search** — Real-time filtering
+- **Lead count selector** — 50 / 100 / 200 / All
+- **Pagination** — Navigate large result sets
+- **Instant export** — Excel (.xlsx) or CSV (.csv)
+- **Maps links** — Google Maps & OpenStreetMap
+
+### Account & Settings
+
+- **Profile** — Display name, email
+- **Data sources** — Status of Nominatim, Overpass, AI
+- **Export preferences** — Default format, lead count
+- **Appearance** — Dark theme (light coming soon)
+- **Billing** — Usage metrics, monthly credits, activity
 
 ---
 
-## Technology Stack
+## 🏗️ Architecture
 
-| Layer     | Technology                                              |
-|-----------|---------------------------------------------------------|
-| Backend   | Django 5/6, Python 3.12+                                 |
-| Database  | SQLite (development), PostgreSQL (production ready)      |
-| Frontend  | Django Templates, Bootstrap 5, HTMX, JavaScript          |
-| Export    | Pandas, OpenPyXL                                        |
-| Maps/Data | OpenStreetMap — Nominatim API + Overpass API (all free) |
+### Tech Stack
 
----
+| Layer | Technology |
+|-------|-----------|
+| Backend | Django 6.0.6 (Python 3.13) |
+| Database | SQLite (dev) / PostgreSQL (prod) |
+| Frontend | Django Templates + Tailwind + HTMX + Alpine.js |
+| Analytics | Chart.js |
+| Data | Nominatim + Overpass API (free) |
+| Export | OpenPyXL + CSV |
 
-## Project Structure
+### Project Structure
 
 ```
 business_lead_finder/
+├── config/                    # Django settings
+│   ├── settings.py           # Production-ready config
+│   ├── urls.py
+│   └── wsgi.py
+├── leads/                     # Main app
+│   ├── models.py             # Search, Business, Enrichment, ExportLog
+│   ├── views.py              # All module views
+│   ├── forms.py              # Search forms
+│   ├── urls.py
+│   ├── admin.py              # Admin with custom actions
+│   ├── tests.py              # 19 unit + integration tests
+│   └── services/
+│       ├── osm.py            # Nominatim + Overpass
+│       ├── scraper.py        # Website crawling
+│       ├── emailfinder.py    # Email generation & verification
+│       ├── linkedin.py       # LinkedIn intake
+│       ├── enrichment.py     # AI enrichment
+│       └── exporter.py       # Excel/CSV builders
+├── templates/
+│   ├── base.html             # Forge OS chrome
+│   ├── landing.html          # Public landing page
+│   ├── dashboard.html        # Dashboard
+│   ├── modules/
+│   │   ├── gmaps.html
+│   │   ├── linkedin.html
+│   │   ├── scraper.html
+│   │   ├── emailfinder.html
+│   │   └── enrichment.html
+│   ├── settings.html
+│   ├── billing.html
+│   ├── packages.html
+│   └── partials/             # HTMX partials
+├── static/css/
+│   └── forge.css             # Forge OS theme
+├── db.sqlite3
 ├── manage.py
 ├── requirements.txt
-├── README.md
-├── db.sqlite3
-├── config/                     # Django project package
-│   ├── settings.py             # SQLite/PostgreSQL, caching, OSM config
-│   ├── urls.py
-│   ├── wsgi.py
-│   └── asgi.py
-├── leads/                      # Main application
-│   ├── models.py               # Search, Business, ExportLog (+ indexes)
-│   ├── views.py                # search, results partial, export, dashboard
-│   ├── urls.py
-│   ├── forms.py
-│   ├── admin.py                # admin + delete-duplicates + export actions
-│   ├── tests.py                # unit + integration tests
-│   ├── migrations/
-│   └── services/
-│       ├── osm.py              # Nominatim + Overpass integration & caching
-│       └── exporter.py         # OpenPyXL workbook builder
-└── templates/
-    ├── base.html
-    ├── home.html               # search page
-    ├── dashboard.html
-    ├── history.html
-    └── partials/
-        ├── results.html        # HTMX results table (sort/paginate/filter)
-        └── empty.html
+└── README.md
 ```
+
+### Database Models
+
+**Search** — Extraction job
+- `source` — google_maps, linkedin, website, email_finder, enrichment
+- `business_type`, `location` — Query parameters
+- `status` — running, completed, failed
+- `total_results`, `duration_seconds`
+- Indexes for fast queries
+
+**Business** — Lead row (shared across sources)
+- Core: name, category, address, phone, website, email, latitude, longitude
+- LinkedIn: position, company, industry, company_size, linkedin_url
+- Email: email_status, email_confidence
+- OSM: osm_type, osm_id (deduplication)
+- Misc: social_links, extra (JSON)
+
+**Enrichment** — OneToOne with Business
+- ai_summary, ai_score (0-100)
+- industry, employee_count, business_category
+- technologies, social_links (JSON)
+- domain
+
+**ExportLog** — Export audit trail
+- source, fmt (xlsx/csv), record_count
+- business_type, location
+- created_at
 
 ---
 
-## Quick Start (Development)
+## 🚀 Quick Start
 
-> A virtual environment (`venv/`) is already included. Use it directly, or
-> recreate one as shown below.
+### Installation
 
 ```bash
-# 1. (Optional) create / activate a virtual environment
-python -m venv venv
-# Windows
+cd C:\Users\HEY\business_lead_finder
 venv\Scripts\activate
-# macOS / Linux
-source venv/bin/activate
-
-# 2. Install dependencies
 pip install -r requirements.txt
+```
 
-# 3. Apply database migrations
+### Run Migrations
+
+```bash
 python manage.py migrate
+```
 
-# 4. (Optional) create an admin user for the Django Admin panel
+### Create Admin User
+
+```bash
 python manage.py createsuperuser
-
-# 5. Run the development server
-python manage.py runserver
 ```
 
-Then open:
-
-- App:        http://127.0.0.1:8000/
-- Dashboard:  http://127.0.0.1:8000/dashboard/
-- History:    http://127.0.0.1:8000/history/
-- Admin:      http://127.0.0.1:8000/admin/
-
----
-
-## How a Search Works
-
-1. The user enters a **business type** and a **location** and clicks **Search**.
-2. HTMX POSTs the form; the view calls `leads.services.osm.fetch_businesses()`.
-3. **Nominatim** converts the location text into latitude/longitude.
-4. An **Overpass QL** query fetches matching businesses within a configurable
-   radius (default 8 km) around that point.
-5. Results are parsed, de-duplicated, sorted, **cached**, and **bulk-inserted**
-   into the database under a new `Search` record.
-6. The results table is rendered back into the page via HTMX — instantly.
-
-Both the geocoding and Overpass responses are cached (6 hours by default), so
-repeating an identical search returns almost immediately.
-
----
-
-## Excel Export
-
-Click **Export Excel** on any result set (or use the **History** page) to
-download `business_leads.xlsx`. Columns:
-
-```
-Name | Category | Address | Phone | Website | Latitude | Longitude | Maps Link
-```
-
-The Website and Maps Link cells are clickable hyperlinks.
-
----
-
-## Admin Panel
-
-Log in at `/admin/`. Admins can:
-
-- Browse and search **Searches** and **Businesses**.
-- **Delete duplicate leads** (same name + address) via a bulk action.
-- **Export selected leads** to Excel directly from the change list.
-- Review **Export Logs**.
-
----
-
-## Production Deployment
-
-The same code base is production ready. Configure via environment variables:
-
-| Variable                     | Purpose                                   |
-|------------------------------|-------------------------------------------|
-| `DJANGO_DEBUG`               | `False` in production                     |
-| `DJANGO_SECRET_KEY`          | Strong secret key                         |
-| `DJANGO_ALLOWED_HOSTS`       | Comma-separated host list                 |
-| `DJANGO_CSRF_TRUSTED_ORIGINS`| Comma-separated trusted origins           |
-| `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_HOST` / `POSTGRES_PORT` | Use PostgreSQL |
-| `REDIS_URL`                  | Use Redis as the cache backend            |
-| `OSM_USER_AGENT`             | Identify your app to Nominatim politely    |
-| `OSM_SEARCH_RADIUS`          | Search radius in meters (default 8000)    |
-
-Example production run:
+### Start Dev Server
 
 ```bash
-export DJANGO_DEBUG=False
-export DJANGO_SECRET_KEY="your-strong-secret"
-export DJANGO_ALLOWED_HOSTS="yourdomain.com"
-export POSTGRES_DB=leads POSTGRES_USER=leads POSTGRES_PASSWORD=secret POSTGRES_HOST=localhost
+python manage.py runserver 127.0.0.1:8000
+```
 
-pip install -r requirements.txt
-python manage.py migrate
+Open **http://127.0.0.1:8000/** in your browser.
+
+### Run Tests
+
+```bash
+python manage.py test leads -v 1
+```
+
+All 19 tests pass ✓
+
+---
+
+## 📖 Usage
+
+### Google Maps Extraction
+
+1. Navigate to **Extractors → Google Maps**
+2. Enter:
+   - Business Type (e.g., "Bakery")
+   - Location (e.g., "Chromepet, Chennai")
+   - Radius (km) — default 5
+   - Max Results — default 50
+3. Click **Run Extraction**
+4. Results table appears with:
+   - Sortable columns
+   - In-table search filter
+   - Lead count selector (50/100/200/All)
+   - Export to Excel or CSV
+
+### Website Scraper
+
+1. Navigate to **Extractors → Website Scraper**
+2. Enter domain URL
+3. Optionally enable **Crawl internal pages**
+4. Click **Scrape Website**
+5. View extracted emails, phones, socials, metadata
+
+### Email Finder & Verifier
+
+1. Navigate to **Extractors → Email Finder**
+2. Enter:
+   - Person Name (optional)
+   - Company Domain (required)
+   - Company (optional)
+3. Optionally enable **Run SMTP/MX verification**
+4. Click **Find Emails**
+5. View candidates with verification status & confidence
+
+### LinkedIn Intake
+
+1. Navigate to **Extractors → LinkedIn Lead Gen**
+2. Paste search results or LinkedIn URLs
+3. Click **Ingest Leads**
+4. Leads parsed with company, role, industry
+
+### AI Enrichment
+
+1. Navigate to **Extractors → AI Enrichment**
+2. View Google Maps leads with websites
+3. Click **Enrich** on any lead
+4. AI generates summary, industry, score
+
+### Dashboard
+
+- View metrics (total leads, today's searches, exports)
+- See charts (daily volume, industry breakdown)
+- Browse recent jobs
+
+### Export
+
+- Click **Export Excel** or **Export CSV** on any results table
+- Downloads instantly with all lead fields
+
+### Settings
+
+- Update profile (name, email)
+- View data sources status
+- Set export preferences
+- Choose appearance
+
+### Billing
+
+- View current plan & usage
+- See recent activity (all exports)
+- Upgrade to Pro or Agency
+
+---
+
+## ⚙️ Configuration
+
+### Django Settings (`config/settings.py`)
+
+**OSM Configuration:**
+```python
+OSM_SEARCH_RADIUS = 5  # km (default)
+OSM_CACHE_TIMEOUT = 3600  # seconds
+OSM_USER_AGENT = "FORGE.OS Lead Intelligence / 1.0"
+```
+
+**Database:**
+```python
+# SQLite (dev)
+DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': 'db.sqlite3'}}
+
+# PostgreSQL (production)
+DATABASES = {'default': {'ENGINE': 'django.db.backends.postgresql', 'NAME': 'forge_db', ...}}
+```
+
+**Caching:**
+```python
+# Development (in-memory)
+CACHES = {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}}
+
+# Production (Redis)
+CACHES = {'default': {'BACKEND': 'django.core.cache.backends.redis.RedisCache', 'LOCATION': 'redis://127.0.0.1:6379/1'}}
+```
+
+**LLM (AI Enrichment):**
+```python
+# Uses OPENAI_API_KEY and OPENAI_API_BASE from environment
+```
+
+---
+
+## 🏭 Production Deployment
+
+### Using Gunicorn + PostgreSQL + Redis
+
+```bash
+# Install production dependencies
+pip install gunicorn psycopg2-binary redis
+
+# Collect static files
 python manage.py collectstatic --noinput
-gunicorn config.wsgi:application --bind 0.0.0.0:8000
+
+# Run migrations
+python manage.py migrate
+
+# Start Gunicorn
+gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 4
 ```
 
-WhiteNoise serves static files, so no separate static server is required.
-
----
-
-## Running Tests
+### Environment Variables
 
 ```bash
-python manage.py test leads
+DEBUG=False
+SECRET_KEY=your-secret-key-here
+ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+DATABASE_URL=postgresql://user:password@localhost/forge_db
+REDIS_URL=redis://localhost:6379/1
+OPENAI_API_KEY=sk-...
 ```
 
-The suite covers models, the OSM query builder, the Excel exporter, and the
-search / export views (the network layer is mocked, so tests run offline).
+### PostgreSQL Setup
+
+```bash
+createdb forge_db
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+### Nginx Reverse Proxy
+
+```nginx
+server {
+    listen 80;
+    server_name yourdomain.com;
+    client_max_body_size 10M;
+
+    location /static/ {
+        alias /path/to/staticfiles/;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
 
 ---
 
-## Usage Policy Note (Important)
+## 🧪 Testing
 
-This project uses the **public** OpenStreetMap Nominatim and Overpass endpoints,
-which are free but rate-limited and intended for moderate use. Please respect
-their usage policies:
+```bash
+# Run all tests
+python manage.py test leads -v 1
 
-- Send a descriptive `User-Agent` (configured via `OSM_USER_AGENT`).
-- Avoid heavy bulk scraping; the built-in caching helps here.
-- For high volume, consider self-hosting Nominatim/Overpass and pointing
-  `NOMINATIM_URL` / `OVERPASS_URL` at your own instances.
+# Run specific test class
+python manage.py test leads.tests.ViewTests -v 1
+
+# Run with coverage
+pip install coverage
+coverage run --source='leads' manage.py test leads
+coverage report
+```
+
+**Test Coverage:**
+- Models: Search, Business, Enrichment, ExportLog
+- Services: OSM, scraper, email finder, enrichment
+- Views: All modules, HTMX endpoints, exports
+- Forms: Validation
+
+---
+
+## 🔗 Free APIs Used
+
+| Service | Endpoint | Rate Limit | Cost |
+|---------|----------|-----------|------|
+| Nominatim | nominatim.openstreetmap.org | 1 req/sec | Free |
+| Overpass | overpass-api.de | ~1 req/sec | Free |
+| MX Lookup | dnspython | Unlimited | Free |
+| SMTP Check | Custom | Unlimited | Free |
+| LLM (Optional) | OpenAI-compatible | Per token | Variable |
+
+**No Google API billing. No subscriptions. 100% free infrastructure.**
+
+---
+
+## 🆘 Troubleshooting
+
+### "Could not find the location"
+- Nominatim geocoding failed
+- Try a more specific location name
+- Example: "Chromepet, Chennai" instead of "Chennai"
+
+### "The OpenStreetMap data service is temporarily busy"
+- Overpass API rate limit hit
+- Wait a few minutes and retry
+- Cached searches return instantly
+
+### No emails extracted from website
+- Website may not have contact info on homepage
+- Enable **Crawl internal pages** to search deeper
+- Some sites block scraping; respect robots.txt
+
+### Email verification shows "Risky"
+- Domain exists (MX found) but SMTP check inconclusive
+- Email may still be valid; use with caution
+
+### Admin panel not accessible
+- Create superuser: `python manage.py createsuperuser`
+- Navigate to `/admin/`
+
+---
+
+## 📋 Usage Policy (Important)
+
+This project uses the **public** OpenStreetMap Nominatim and Overpass endpoints, which are free but rate-limited. Please respect their usage policies:
+
+- Send a descriptive `User-Agent` (configured via `OSM_USER_AGENT`)
+- Avoid heavy bulk scraping; the built-in caching helps
+- For high volume, consider self-hosting Nominatim/Overpass
 
 Policies:
-- Nominatim: <https://operations.osmfoundation.org/policies/nominatim/>
-- Overpass:  <https://dev.overpass-api.de/overpass-doc/>
+- Nominatim: https://operations.osmfoundation.org/policies/nominatim/
+- Overpass: https://dev.overpass-api.de/overpass-doc/
 
 ---
 
-## License & Data Attribution
+## 📜 License & Attribution
 
-Business data is © OpenStreetMap contributors, available under the
-**Open Database License (ODbL)**. When publishing results, attribute
-OpenStreetMap accordingly.
+Business data is © OpenStreetMap contributors, available under the **Open Database License (ODbL)**. When publishing results, attribute OpenStreetMap accordingly.
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] Celery async tasks for large extractions
+- [ ] Redis caching for production
+- [ ] Team collaboration (multiple users)
+- [ ] API key authentication
+- [ ] Webhook integrations (Zapier, Make)
+- [ ] Advanced filtering & saved searches
+- [ ] Bulk import (CSV upload)
+- [ ] Lead scoring rules engine
+- [ ] CRM integrations (Salesforce, HubSpot)
+- [ ] Mobile app (React Native)
+
+---
+
+**Built with ❤️ using Django, OpenStreetMap, and free APIs.**
+
+**FORGE.OS — The operator terminal for local lead intelligence.**

@@ -1,0 +1,605 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Lead: {{ lead.name }}{% endblock %}
+
+{% block content %}
+<div class="lead-detail-container">
+    <!-- Lead Header -->
+    <div class="lead-header card">
+        <div class="lead-header-content">
+            <div class="lead-info">
+                <h1>{{ lead.name }}</h1>
+                <p class="category">{{ lead.category }}</p>
+                <div class="lead-meta">
+                    <span class="rating" {% if lead.rating %}title="{{ lead.rating }} stars"{% endif %}>
+                        {% if lead.rating %}⭐ {{ lead.rating }}{% else %}No rating{% endif %}
+                    </span>
+                    <span class="reviews">{{ lead.reviews|default:"0" }} reviews</span>
+                </div>
+            </div>
+            
+            <!-- Status Badge -->
+            <div class="status-section">
+                <label>Lead Status</label>
+                <select id="lead-status" class="status-select" data-lead-id="{{ lead.id }}">
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if lead.status == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="lead-content">
+        <!-- Left Column: Business Info -->
+        <div class="lead-main">
+            <!-- Contact Information -->
+            <section class="info-section card">
+                <h2>Contact Information</h2>
+                <div class="info-grid">
+                    {% if lead.address %}
+                    <div class="info-item">
+                        <label>Address</label>
+                        <p>{{ lead.address }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if lead.phone %}
+                    <div class="info-item">
+                        <label>Phone</label>
+                        <p><a href="tel:{{ lead.phone }}">{{ lead.phone }}</a></p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if lead.email %}
+                    <div class="info-item">
+                        <label>Email</label>
+                        <p><a href="mailto:{{ lead.email }}">{{ lead.email }}</a></p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if lead.website %}
+                    <div class="info-item">
+                        <label>Website</label>
+                        <p><a href="{{ lead.website }}" target="_blank">{{ lead.website }}</a></p>
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="actions-section card">
+                <h2>Quick Actions</h2>
+                <div class="action-buttons">
+                    <a href="tel:{{ lead.phone }}" class="btn btn-primary" {% if not lead.phone %}disabled{% endif %}>
+                        📞 Call
+                    </a>
+                    <a href="mailto:{{ lead.email }}" class="btn btn-primary" {% if not lead.email %}disabled{% endif %}>
+                        ✉️ Email
+                    </a>
+                    <a href="{% url 'email_composer' lead.id %}" class="btn btn-secondary">
+                        📧 Compose Email
+                    </a>
+                    {% if lead.website %}
+                    <a href="{% url 'website_analyzer' %}?url={{ lead.website|urlencode }}" class="btn btn-secondary">
+                        🔍 Analyze Website
+                    </a>
+                    {% endif %}
+                    <a href="{{ lead.google_maps_link }}" target="_blank" class="btn btn-secondary" {% if not lead.google_maps_link %}disabled{% endif %}>
+                        🗺️ Maps
+                    </a>
+                </div>
+            </section>
+
+            <!-- Website Analysis -->
+            {% if website_analysis %}
+            <section class="analysis-section card">
+                <h2>Website Analysis</h2>
+                <div class="analysis-grid">
+                    <div class="analysis-item">
+                        <label>SSL/HTTPS</label>
+                        <span class="badge {% if website_analysis.ssl_valid %}success{% else %}warning{% endif %}">
+                            {% if website_analysis.ssl_valid %}✓ Valid{% else %}⚠ Invalid{% endif %}
+                        </span>
+                    </div>
+                    <div class="analysis-item">
+                        <label>SEO Score</label>
+                        <span class="score">{{ website_analysis.seo_score }}/100</span>
+                    </div>
+                    <div class="analysis-item">
+                        <label>Mobile Responsive</label>
+                        <span class="badge {% if website_analysis.is_mobile_responsive %}success{% else %}warning{% endif %}">
+                            {% if website_analysis.is_mobile_responsive %}✓ Yes{% else %}✗ No{% endif %}
+                        </span>
+                    </div>
+                    <div class="analysis-item">
+                        <label>Page Load Time</label>
+                        <span>{% if website_analysis.page_load_time_ms %}{{ website_analysis.page_load_time_ms }}ms{% else %}—{% endif %}</span>
+                    </div>
+                </div>
+                
+                {% if website_analysis.recommendations %}
+                <div class="recommendations">
+                    <h3>Recommendations</h3>
+                    <ul>
+                        {% for rec in website_analysis.recommendations %}
+                        <li class="rec-{{ rec.priority }}">
+                            <strong>{{ rec.title }}</strong>
+                            <p>{{ rec.description }}</p>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </section>
+            {% endif %}
+
+            <!-- Enrichment Data -->
+            {% if enrichment %}
+            <section class="enrichment-section card">
+                <h2>AI Enrichment</h2>
+                <div class="enrichment-content">
+                    {% if enrichment.ai_summary %}
+                    <div class="summary">
+                        <h3>Summary</h3>
+                        <p>{{ enrichment.ai_summary }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="enrichment-grid">
+                        {% if enrichment.industry %}
+                        <div class="enrichment-item">
+                            <label>Industry</label>
+                            <p>{{ enrichment.industry }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if enrichment.employee_count %}
+                        <div class="enrichment-item">
+                            <label>Employee Count</label>
+                            <p>{{ enrichment.employee_count }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if enrichment.ai_score %}
+                        <div class="enrichment-item">
+                            <label>AI Lead Score</label>
+                            <p>{{ enrichment.ai_score }}/100</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+            <!-- Notes Section -->
+            <section class="notes-section card">
+                <h2>Notes</h2>
+                <form id="notes-form" hx-post="{% url 'add_lead_note' lead.id %}" hx-target="#notes-display">
+                    <textarea name="note" placeholder="Add a note..." rows="3"></textarea>
+                    <button type="submit" class="btn btn-primary">Add Note</button>
+                </form>
+                <div id="notes-display" class="notes-display">
+                    {% if lead.notes %}
+                        <pre>{{ lead.notes }}</pre>
+                    {% else %}
+                        <p class="empty-state">No notes yet</p>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+
+        <!-- Right Column: Activity Timeline -->
+        <aside class="lead-sidebar">
+            <section class="activity-section card">
+                <h2>Activity Timeline</h2>
+                <div class="activity-timeline">
+                    {% for activity in activities %}
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            {% if activity.activity_type == "email_sent" %}📧
+                            {% elif activity.activity_type == "call_made" %}📞
+                            {% elif activity.activity_type == "note_added" %}📝
+                            {% elif activity.activity_type == "status_changed" %}✓
+                            {% elif activity.activity_type == "website_analyzed" %}🔍
+                            {% elif activity.activity_type == "enriched" %}✨
+                            {% else %}•{% endif %}
+                        </div>
+                        <div class="activity-content">
+                            <p class="activity-type">{{ activity.get_activity_type_display }}</p>
+                            {% if activity.description %}
+                            <p class="activity-description">{{ activity.description }}</p>
+                            {% endif %}
+                            <p class="activity-time">{{ activity.created_at|date:"M d, Y H:i" }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="empty-state">No activity yet</p>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- Lead Metadata -->
+            <section class="metadata-section card">
+                <h2>Details</h2>
+                <dl>
+                    <dt>Created</dt>
+                    <dd>{{ lead.created_at|date:"M d, Y" }}</dd>
+                    
+                    <dt>Last Contacted</dt>
+                    <dd>{{ lead.last_contacted_at|date:"M d, Y H:i"|default:"Never" }}</dd>
+                    
+                    {% if lead.source %}
+                    <dt>Source</dt>
+                    <dd>{{ lead.get_source_display }}</dd>
+                    {% endif %}
+                    
+                    {% if lead.coordinates %}
+                    <dt>Coordinates</dt>
+                    <dd>{{ lead.coordinates }}</dd>
+                    {% endif %}
+                </dl>
+            </section>
+        </aside>
+    </div>
+</div>
+
+<style>
+.lead-detail-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.lead-header {
+    margin-bottom: 30px;
+}
+
+.lead-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 30px;
+}
+
+.lead-info h1 {
+    margin: 0 0 10px 0;
+    font-size: 28px;
+}
+
+.category {
+    color: #666;
+    margin: 5px 0;
+}
+
+.lead-meta {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.status-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.status-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.lead-content {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 30px;
+}
+
+.info-section, .actions-section, .analysis-section, .enrichment-section, .notes-section {
+    margin-bottom: 30px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.info-item label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.info-item p {
+    margin: 0;
+    color: #666;
+}
+
+.info-item a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #0066cc;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0052a3;
+}
+
+.btn-secondary {
+    background: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.btn-secondary:hover {
+    background: #e8e8e8;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.analysis-item {
+    padding: 12px;
+    background: #f9f9f9;
+    border-radius: 4px;
+}
+
+.analysis-item label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge.success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge.warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.score {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.recommendations {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.recommendations h3 {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+}
+
+.recommendations ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.recommendations li {
+    padding: 12px;
+    margin-bottom: 10px;
+    border-left: 4px solid #ddd;
+    background: #f9f9f9;
+}
+
+.recommendations li.rec-critical {
+    border-left-color: #dc3545;
+    background: #fff5f5;
+}
+
+.recommendations li.rec-high {
+    border-left-color: #ffc107;
+    background: #fffbf0;
+}
+
+.recommendations li.rec-medium {
+    border-left-color: #17a2b8;
+    background: #f0f8fb;
+}
+
+.recommendations li strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.recommendations li p {
+    margin: 0;
+    font-size: 13px;
+    color: #666;
+}
+
+.notes-section textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.notes-display {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.notes-display pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.activity-timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.activity-item {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.activity-icon {
+    position: absolute;
+    left: -30px;
+    top: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    font-size: 16px;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-type {
+    margin: 0 0 5px 0;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.activity-description {
+    margin: 0 0 5px 0;
+    color: #666;
+    font-size: 13px;
+}
+
+.activity-time {
+    margin: 0;
+    color: #999;
+    font-size: 12px;
+}
+
+.metadata-section dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px 15px;
+}
+
+.metadata-section dt {
+    font-weight: 600;
+    color: #333;
+}
+
+.metadata-section dd {
+    margin: 0;
+    color: #666;
+}
+
+.empty-state {
+    text-align: center;
+    color: #999;
+    padding: 20px;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .lead-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .analysis-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+
+<script>
+document.getElementById('lead-status').addEventListener('change', function() {
+    const form = new FormData();
+    form.append('status', this.value);
+    
+    fetch('{% url "update_lead_status" lead.id %}', {
+        method: 'POST',
+        body: form,
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Status updated');
+        }
+    });
+});
+</script>
+{% endblock %}

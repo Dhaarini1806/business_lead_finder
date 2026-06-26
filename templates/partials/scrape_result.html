@@ -1,0 +1,40 @@
+{% if error %}
+  <div class="card" style="border-color:var(--red)"><div class="center"><span class="dot red"></span><span style="color:var(--red);font-weight:600">{{ error }}</span></div></div>
+{% else %}
+<div class="card card-pad-0">
+  <div class="between" style="padding:16px 18px;border-bottom:1px solid var(--border)">
+    <div>
+      <div style="font-weight:700;font-size:15px">{{ res.title|default:res.url }}</div>
+      <div class="kicker mt-2">{{ res.url|truncatechars:60 }} · {{ res.pages_crawled }} page{{ res.pages_crawled|pluralize }} · {{ duration }}s</div>
+    </div>
+    <a class="btn btn-sm btn-primary" href="{% url 'leads:export' search.id %}?fmt=xlsx">Export Excel</a>
+  </div>
+  <div style="padding:18px">
+    {% if res.description %}<p class="muted" style="font-size:13px">{{ res.description }}</p>{% endif %}
+    <div class="grid mt-3" style="grid-template-columns:1fr 1fr;gap:18px">
+      <div>
+        <div class="kicker">Emails ({{ res.emails|length }})</div>
+        <div class="mt-2">
+          {% for e in res.emails %}<div><a class="link" href="mailto:{{ e }}">{{ e }}</a></div>{% empty %}<span class="dash">None found</span>{% endfor %}
+        </div>
+      </div>
+      <div>
+        <div class="kicker">Phones ({{ res.phones|length }})</div>
+        <div class="mt-2 mono">
+          {% for p in res.phones %}<div>{{ p }}</div>{% empty %}<span class="dash">None found</span>{% endfor %}
+        </div>
+      </div>
+    </div>
+    {% if res.socials %}
+    <div class="kicker mt-4">Social profiles</div>
+    <div class="row mt-2" style="gap:8px">
+      {% for name, url in res.socials.items %}<a class="src-pill" href="{{ url }}" target="_blank">{{ name }}</a>{% endfor %}
+    </div>
+    {% endif %}
+    {% if res.addresses %}
+    <div class="kicker mt-4">Addresses</div>
+    {% for a in res.addresses %}<div class="muted" style="font-size:12.5px">{{ a }}</div>{% endfor %}
+    {% endif %}
+  </div>
+</div>
+{% endif %}

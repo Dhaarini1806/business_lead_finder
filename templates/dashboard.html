@@ -1,95 +1,122 @@
-{% extends "base.html" %}
-{% block title %}Dashboard · Business Lead Finder{% endblock %}
+{% extends 'base.html' %}
+{% block topbar_action %}
+  <a href="{% url 'leads:gmaps' %}" class="btn btn-primary">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+    New extraction
+  </a>
+{% endblock %}
 
 {% block content %}
-<h2 class="mb-4"><i class="bi bi-speedometer2"></i> Dashboard</h2>
-
-<div class="row g-3 mb-4">
-  <div class="col-6 col-lg-3">
-    <div class="card stat-card h-100">
-      <div class="card-body">
-        <div class="text-muted small">Total Searches</div>
-        <div class="display-6 text-primary">{{ stats.total_searches }}</div>
-      </div>
-    </div>
+<div class="grid" style="grid-template-columns: repeat(5, 1fr);">
+  <div class="card metric">
+    <span class="kicker">Total Leads</span>
+    <div class="value">{{ stats.total_leads }}</div>
+    <div class="delta">+ extracted</div>
   </div>
-  <div class="col-6 col-lg-3">
-    <div class="card stat-card h-100">
-      <div class="card-body">
-        <div class="text-muted small">Businesses Found</div>
-        <div class="display-6 text-success">{{ stats.total_businesses }}</div>
-      </div>
-    </div>
+  <div class="card metric">
+    <span class="kicker">Today's Searches</span>
+    <div class="value">{{ stats.today_searches }}</div>
+    <div class="delta flat">last 24h</div>
   </div>
-  <div class="col-6 col-lg-3">
-    <div class="card stat-card h-100">
-      <div class="card-body">
-        <div class="text-muted small">Total Exports</div>
-        <div class="display-6 text-warning">{{ stats.total_exports }}</div>
-      </div>
-    </div>
+  <div class="card metric">
+    <span class="kicker">Successful Extractions</span>
+    <div class="value">{{ stats.successful }}</div>
+    <div class="delta">completed</div>
   </div>
-  <div class="col-6 col-lg-3">
-    <div class="card stat-card h-100">
-      <div class="card-body">
-        <div class="text-muted small">Today's Searches</div>
-        <div class="display-6 text-info">{{ stats.today_searches }}</div>
-      </div>
-    </div>
+  <div class="card metric">
+    <span class="kicker">Enriched Leads</span>
+    <div class="value">{{ stats.enriched }}</div>
+    <div class="delta flat">AI augmented</div>
+  </div>
+  <div class="card metric">
+    <span class="kicker">Exported Records</span>
+    <div class="value">{{ stats.exported }}</div>
+    <div class="delta flat">xlsx · csv</div>
   </div>
 </div>
 
-<div class="row g-3">
-  <div class="col-lg-6">
-    <div class="card h-100">
-      <div class="card-header bg-white fw-semibold">
-        <i class="bi bi-bar-chart"></i> Top Business Types
+<div class="grid mt-4" style="grid-template-columns: 2fr 1fr;">
+  <div class="card">
+    <div class="between">
+      <div>
+        <div style="font-weight:700;font-size:15px">Lead generation analytics</div>
+        <div class="kicker mt-2">Last 14 days · daily searches & lead growth</div>
       </div>
-      <div class="card-body p-0">
-        <table class="table mb-0">
-          <thead class="table-light">
-            <tr><th>Business Type</th><th class="text-end">Searches</th><th class="text-end">Leads</th></tr>
-          </thead>
-          <tbody>
-            {% for row in top_types %}
-            <tr>
-              <td>{{ row.business_type }}</td>
-              <td class="text-end">{{ row.count }}</td>
-              <td class="text-end">{{ row.leads|default:0 }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="3" class="text-center text-muted py-3">No data yet.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+      <span class="pill"><span class="dot cyan"></span> LIVE</span>
     </div>
+    <div style="height:280px;margin-top:14px"><canvas id="dailyChart"></canvas></div>
   </div>
 
-  <div class="col-lg-6">
-    <div class="card h-100">
-      <div class="card-header bg-white fw-semibold">
-        <i class="bi bi-clock-history"></i> Recent Searches
-      </div>
-      <div class="card-body p-0">
-        <table class="table mb-0">
-          <thead class="table-light">
-            <tr><th>Query</th><th class="text-end">Results</th><th class="text-end">When</th></tr>
-          </thead>
-          <tbody>
-            {% for s in recent %}
-            <tr>
-              <td>{{ s.business_type }} · {{ s.location }}</td>
-              <td class="text-end">{{ s.total_results }}</td>
-              <td class="text-end small text-muted">{{ s.created_at|date:"M d, H:i" }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="3" class="text-center text-muted py-3">No searches yet.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
+  <div class="card">
+    <div style="font-weight:700;font-size:15px">Top Industries</div>
+    <div class="kicker mt-2">By lead volume</div>
+    <div style="height:280px;margin-top:14px"><canvas id="indChart"></canvas></div>
   </div>
 </div>
+
+<div class="card card-pad-0 mt-4">
+  <div class="between" style="padding:18px">
+    <div>
+      <div style="font-weight:700;font-size:15px">Recent extractions</div>
+      <div class="kicker mt-2">Latest jobs</div>
+    </div>
+    <a href="{% url 'leads:gmaps' %}" class="btn btn-sm btn-ghost">View all</a>
+  </div>
+  <div class="table-wrap">
+    <table class="forge">
+      <thead>
+        <tr><th>Job ID</th><th>Source</th><th>Target</th><th>Records</th><th>Status</th><th>When</th></tr>
+      </thead>
+      <tbody>
+        {% for s in recent %}
+        <tr>
+          <td class="mono muted">{{ s.job_id }}</td>
+          <td><span class="src-pill">{{ s.get_source_display }}</span></td>
+          <td class="cell-title">{{ s.query_label|default:"—" }}</td>
+          <td class="mono">{{ s.total_results }}</td>
+          <td>
+            {% if s.status == 'completed' %}<span class="badge ok"><span class="dot green"></span> Completed</span>
+            {% elif s.status == 'running' %}<span class="badge run"><span class="dot cyan"></span> Running</span>
+            {% else %}<span class="badge fail"><span class="dot red"></span> Failed</span>{% endif %}
+          </td>
+          <td class="muted">{{ s.created_at|timesince }} ago</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="empty">No extractions yet. Start with Google Maps Extraction.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const C = JSON.parse('{{ charts_json|escapejs }}');
+  const grid = '#1f232a', tick = '#8b929c', cyan = '#22d3ee', lime = '#a3e635';
+  const baseOpts = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: tick, font: { size: 11 } } } },
+    scales: {
+      x: { grid: { color: grid }, ticks: { color: tick, font: { size: 10 } } },
+      y: { grid: { color: grid }, ticks: { color: tick, font: { size: 10 } }, beginAtZero: true }
+    }
+  };
+  new Chart(document.getElementById('dailyChart'), {
+    type: 'bar',
+    data: { labels: C.labels, datasets: [
+      { label: 'Searches', data: C.daily, backgroundColor: cyan, borderRadius: 4, barThickness: 10 },
+      { label: 'Lead growth', data: C.growth, type: 'line', borderColor: lime, backgroundColor: 'transparent', tension: .35, pointRadius: 0, borderWidth: 2 }
+    ]},
+    options: baseOpts
+  });
+  new Chart(document.getElementById('indChart'), {
+    type: 'doughnut',
+    data: { labels: C.ind_labels, datasets: [{ data: C.ind_values,
+      backgroundColor: ['#22d3ee','#a3e635','#34d399','#fbbf24','#f87171','#818cf8'],
+      borderColor: '#15171c', borderWidth: 2 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '62%',
+      plugins: { legend: { position: 'bottom', labels: { color: tick, font: { size: 10 }, padding: 12 } } } }
+  });
+</script>
 {% endblock %}

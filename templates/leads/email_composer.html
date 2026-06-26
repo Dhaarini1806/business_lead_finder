@@ -1,0 +1,460 @@
+{% extends "base.html" %}
+
+{% block title %}Email Composer - {{ lead.name }}{% endblock %}
+
+{% block content %}
+<div class="email-composer-container">
+    <div class="composer-header">
+        <h1>Email Composer</h1>
+        <p class="subtitle">Composing email for <strong>{{ lead.name }}</strong></p>
+    </div>
+
+    <div class="composer-content">
+        <!-- Template Selection -->
+        <div class="template-section card">
+            <h2>Select Template</h2>
+            <div class="template-grid">
+                {% for template in templates %}
+                <div class="template-card" data-template="{{ template.type }}">
+                    <input type="radio" name="template" value="{{ template.type }}" 
+                           id="template-{{ template.type }}"
+                           {% if template.type == suggested_template.type %}checked{% endif %}>
+                    <label for="template-{{ template.type }}">
+                        <strong>{{ template.subject }}</strong>
+                        <p>{{ template.description }}</p>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Email Composer -->
+        <div class="composer-section card">
+            <h2>Compose Email</h2>
+            
+            <form id="email-form">
+                <!-- Recipient -->
+                <div class="form-group">
+                    <label for="recipient">To</label>
+                    <input type="email" id="recipient" name="recipient" 
+                           value="{{ lead.email }}" readonly>
+                </div>
+
+                <!-- Contact Name -->
+                <div class="form-group">
+                    <label for="contact-name">Contact Name</label>
+                    <input type="text" id="contact-name" name="contact_name" 
+                           placeholder="e.g., John Smith"
+                           value="Owner">
+                </div>
+
+                <!-- Sender Info -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sender-name">Your Name</label>
+                        <input type="text" id="sender-name" name="sender_name" 
+                               placeholder="Your full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="sender-phone">Your Phone</label>
+                        <input type="tel" id="sender-phone" name="sender_phone" 
+                               placeholder="+1-XXX-XXX-XXXX">
+                    </div>
+                </div>
+
+                <!-- Subject -->
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <input type="text" id="subject" name="subject" 
+                           placeholder="Email subject"
+                           value="{{ suggested_template.subject }}">
+                </div>
+
+                <!-- Body -->
+                <div class="form-group">
+                    <label for="body">Message</label>
+                    <textarea id="body" name="body" rows="12" 
+                              placeholder="Email body">{{ suggested_template.body }}</textarea>
+                </div>
+
+                <!-- Actions -->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="preview-btn">
+                        👁️ Preview
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="copy-btn">
+                        📋 Copy to Clipboard
+                    </button>
+                    <button type="button" class="btn btn-primary" id="send-btn">
+                        ✉️ Mark as Sent
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Preview Modal -->
+        <div id="preview-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Email Preview</h2>
+                    <button type="button" class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="preview-item">
+                        <label>To:</label>
+                        <p id="preview-to"></p>
+                    </div>
+                    <div class="preview-item">
+                        <label>Subject:</label>
+                        <p id="preview-subject"></p>
+                    </div>
+                    <div class="preview-item">
+                        <label>Message:</label>
+                        <pre id="preview-body"></pre>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="close-preview">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.email-composer-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.composer-header {
+    margin-bottom: 30px;
+}
+
+.composer-header h1 {
+    margin: 0 0 5px 0;
+}
+
+.subtitle {
+    color: #666;
+    margin: 0;
+}
+
+.template-section {
+    margin-bottom: 30px;
+}
+
+.template-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.template-card {
+    position: relative;
+}
+
+.template-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+}
+
+.template-card label {
+    display: block;
+    padding: 15px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.template-card input[type="radio"]:checked + label {
+    border-color: #0066cc;
+    background: #f0f6ff;
+}
+
+.template-card label strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.template-card label p {
+    margin: 0;
+    font-size: 12px;
+    color: #666;
+}
+
+.composer-section {
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 200px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #0066cc;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0052a3;
+}
+
+.btn-secondary {
+    background: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.btn-secondary:hover {
+    background: #e8e8e8;
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 8px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-header h2 {
+    margin: 0;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.preview-item {
+    margin-bottom: 20px;
+}
+
+.preview-item label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.preview-item p {
+    margin: 0;
+    color: #666;
+}
+
+.preview-item pre {
+    margin: 0;
+    padding: 12px;
+    background: #f9f9f9;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+@media (max-width: 768px) {
+    .template-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+const form = document.getElementById('email-form');
+const templateRadios = document.querySelectorAll('input[name="template"]');
+const previewModal = document.getElementById('preview-modal');
+const previewBtn = document.getElementById('preview-btn');
+const copyBtn = document.getElementById('copy-btn');
+const sendBtn = document.getElementById('send-btn');
+const closePreviewBtn = document.getElementById('close-preview');
+const closeBtn = document.querySelector('.close-btn');
+
+// Template selection
+templateRadios.forEach(radio => {
+    radio.addEventListener('change', function() {
+        const templateType = this.value;
+        const formData = new FormData();
+        formData.append('template_type', templateType);
+        formData.append('contact_name', document.getElementById('contact-name').value);
+        formData.append('sender_phone', document.getElementById('sender-phone').value);
+        
+        fetch('{% url "render_email_template" lead.id %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('subject').value = data.subject;
+                document.getElementById('body').value = data.body;
+            }
+        });
+    });
+});
+
+// Preview button
+previewBtn.addEventListener('click', function() {
+    document.getElementById('preview-to').textContent = document.getElementById('recipient').value;
+    document.getElementById('preview-subject').textContent = document.getElementById('subject').value;
+    document.getElementById('preview-body').textContent = document.getElementById('body').value;
+    previewModal.style.display = 'flex';
+});
+
+// Close preview
+closePreviewBtn.addEventListener('click', function() {
+    previewModal.style.display = 'none';
+});
+
+closeBtn.addEventListener('click', function() {
+    previewModal.style.display = 'none';
+});
+
+previewModal.addEventListener('click', function(e) {
+    if (e.target === previewModal) {
+        previewModal.style.display = 'none';
+    }
+});
+
+// Copy to clipboard
+copyBtn.addEventListener('click', function() {
+    const subject = document.getElementById('subject').value;
+    const body = document.getElementById('body').value;
+    const text = `Subject: ${subject}\n\n${body}`;
+    
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Email copied to clipboard!');
+    });
+});
+
+// Send button
+sendBtn.addEventListener('click', function() {
+    const formData = new FormData();
+    formData.append('template_type', document.querySelector('input[name="template"]:checked').value);
+    formData.append('subject', document.getElementById('subject').value);
+    
+    fetch('{% url "log_email_sent" lead.id %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('Email logged as sent!');
+            window.location.href = '{% url "lead_detail" lead.id %}';
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card" style="margin-bottom:16px">
+  <div class="between">
+    <div>
+      <div style="font-weight:700;font-size:15px">AI Lead Enrichment</div>
+      <div class="kicker mt-2">{{ enriched_count }} leads enriched · augments firmographics, summary & lead score</div>
+    </div>
+    <span class="pill"><span class="dot cyan"></span> AI ENGINE</span>
+  </div>
+</div>
+
+<div class="card card-pad-0">
+  <div class="between" style="padding:16px 18px;border-bottom:1px solid var(--border)">
+    <div style="font-weight:700">Enrichable leads <span class="muted" style="font-weight:400">(Google Maps leads with a website)</span></div>
+  </div>
+  <div class="table-wrap">
+    <table class="forge">
+      <thead><tr><th>Name</th><th>Category</th><th>Website</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for b in candidates %}
+        <tr id="lead-row-{{ b.id }}">
+          <td class="cell-title">{{ b.name }}</td>
+          <td>{% if b.category %}<span class="src-pill">{{ b.category }}</span>{% else %}<span class="dash">—</span>{% endif %}</td>
+          <td><a class="link" href="{{ b.website }}" target="_blank">{{ b.website|truncatechars:34 }}</a></td>
+          <td>
+            {% if b.has_enrichment %}<span class="badge ok"><span class="dot green"></span> Enriched · {{ b.enrichment.ai_score }}</span>
+            {% else %}<span class="badge run">Pending</span>{% endif %}
+          </td>
+          <td>
+            <button class="btn btn-sm btn-primary"
+                    hx-post="{% url 'leads:enrich_lead' b.id %}"
+                    hx-target="#drawer-mount" hx-swap="innerHTML"
+                    hx-indicator="#en-spin-{{ b.id }}">
+              <span id="en-spin-{{ b.id }}" class="htmx-indicator"><span class="spinner"></span></span>
+              <span>Enrich</span>
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="empty">No enrichable leads yet. Run a Google Maps extraction first.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div id="drawer-mount"></div>
+{% endblock %}

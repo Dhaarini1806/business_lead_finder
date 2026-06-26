@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ BRAND_NAME }} — Lead Intelligence Operator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/forge.css' %}">
+</head>
+<body>
+  <header style="position:sticky;top:0;z-index:40;backdrop-filter:blur(8px);background:rgba(12,13,16,.7);border-bottom:1px solid var(--border)">
+    <div style="max-width:1180px;margin:0 auto;padding:14px 24px" class="between">
+      <div class="center">
+        <div class="brand-badge">F</div>
+        <div class="brand-name">{{ BRAND_NAME }}</div>
+        <span class="kicker" style="margin-left:8px">{{ BRAND_VERSION }}</span>
+      </div>
+      <div class="center" style="gap:10px">
+        <a href="{% url 'leads:packages' %}" class="btn btn-sm btn-ghost">Pricing</a>
+        <a href="{% url 'leads:dashboard' %}" class="btn btn-sm btn-primary">Launch Console</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="node-grid" style="border-bottom:1px solid var(--border)">
+    <div style="max-width:1180px;margin:0 auto;padding:90px 24px;text-align:center">
+      <span class="pill" style="margin:0 auto"><span class="dot green"></span> 100% FREE · NO PAID APIS · NO GOOGLE BILLING</span>
+      <h1 style="font-size:54px;line-height:1.05;letter-spacing:-.03em;margin:22px 0 0;max-width:880px;margin-left:auto;margin-right:auto">
+        The operator terminal for <span style="color:var(--primary)">local lead</span> intelligence.
+      </h1>
+      <p class="muted" style="font-size:17px;max-width:620px;margin:18px auto 0">
+        Extract, scrape, verify and enrich business leads at scale using free
+        OpenStreetMap data — wrapped in a fast, modern console.
+      </p>
+      <div class="center" style="justify-content:center;margin-top:30px;gap:12px">
+        <a href="{% url 'leads:gmaps' %}" class="btn btn-primary" style="padding:13px 24px">Start Extracting</a>
+        <a href="{% url 'leads:dashboard' %}" class="btn" style="padding:13px 24px">View Dashboard</a>
+      </div>
+
+      <div class="grid" style="grid-template-columns:repeat(4,1fr);max-width:760px;margin:54px auto 0">
+        <div><div class="value mono" style="font-size:30px;color:var(--primary)">5</div><div class="kicker mt-2">Modules</div></div>
+        <div><div class="value mono" style="font-size:30px;color:var(--primary)">&lt;5s</div><div class="kicker mt-2">Avg Search</div></div>
+        <div><div class="value mono" style="font-size:30px;color:var(--primary)">$0</div><div class="kicker mt-2">API Cost</div></div>
+        <div><div class="value mono" style="font-size:30px;color:var(--primary)">∞</div><div class="kicker mt-2">Exports</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="max-width:1180px;margin:0 auto;padding:70px 24px">
+    <div class="kicker" style="text-align:center">Capabilities</div>
+    <h2 style="text-align:center;font-size:32px;margin:8px 0 40px">Five extraction engines, one console</h2>
+    <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+      {% with items="Google Maps Extraction|Pull local businesses, contacts & coordinates from OpenStreetMap.,LinkedIn Lead Gen|Compliant intake of profiles, companies & Sales Navigator filters.,Website Scraper|Crawl any domain for emails, phones, socials & metadata.,Email Finder & Verifier|Generate & verify professional emails via free MX/SMTP.,AI Enrichment|Augment leads with firmographics, summaries & lead scores.,Instant Export|Download to Excel or CSV with one click — unlimited." %}
+      {% for it in items|cut:""|stringformat:"s"|slice:":0" %}{% endfor %}
+      {% endwith %}
+      <div class="card source-card"><div class="kicker">01</div><div style="font-weight:700;margin-top:8px">Google Maps Extraction</div><p class="muted" style="font-size:13px;margin-top:8px">Pull local businesses, contacts & coordinates from OpenStreetMap.</p></div>
+      <div class="card source-card"><div class="kicker">02</div><div style="font-weight:700;margin-top:8px">LinkedIn Lead Gen</div><p class="muted" style="font-size:13px;margin-top:8px">Compliant intake of profiles, companies & Sales Navigator filters.</p></div>
+      <div class="card source-card"><div class="kicker">03</div><div style="font-weight:700;margin-top:8px">Website Scraper</div><p class="muted" style="font-size:13px;margin-top:8px">Crawl any domain for emails, phones, socials & metadata.</p></div>
+      <div class="card source-card"><div class="kicker">04</div><div style="font-weight:700;margin-top:8px">Email Finder & Verifier</div><p class="muted" style="font-size:13px;margin-top:8px">Generate & verify professional emails via free MX / SMTP checks.</p></div>
+      <div class="card source-card"><div class="kicker">05</div><div style="font-weight:700;margin-top:8px">AI Enrichment</div><p class="muted" style="font-size:13px;margin-top:8px">Augment leads with firmographics, summaries & AI lead scores.</p></div>
+      <div class="card source-card"><div class="kicker">06</div><div style="font-weight:700;margin-top:8px">Instant Export</div><p class="muted" style="font-size:13px;margin-top:8px">Download to Excel or CSV with one click — unlimited.</p></div>
+    </div>
+  </section>
+
+  <footer style="border-top:1px solid var(--border);padding:30px 24px;text-align:center" class="muted">
+    <span class="kicker">{{ BRAND_NAME }} · Powered by OpenStreetMap (Nominatim &amp; Overpass) · No paid APIs</span>
+  </footer>
+</body>
+</html>

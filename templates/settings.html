@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+<div x-data="{ tab:'profile' }" class="grid" style="grid-template-columns:220px 1fr;align-items:start">
+  <div class="card" style="padding:8px">
+    <a class="nav-item" :class="tab==='profile'&&'active'" @click="tab='profile'">Profile</a>
+    <a class="nav-item" :class="tab==='api'&&'active'" @click="tab='api'">API & Data Sources</a>
+    <a class="nav-item" :class="tab==='export'&&'active'" @click="tab='export'">Export Preferences</a>
+    <a class="nav-item" :class="tab==='theme'&&'active'" @click="tab='theme'">Appearance</a>
+  </div>
+
+  <div>
+    <div class="card" x-show="tab==='profile'">
+      <div style="font-weight:700;font-size:15px">Profile</div>
+      <div class="kicker mt-2">Operator identity</div>
+      <div class="field mt-3"><label class="kicker">Display name</label><input class="input" value="{% if user.is_authenticated %}{{ user.username }}{% else %}operator{% endif %}"></div>
+      <div class="field"><label class="kicker">Email</label><input class="input" value="{{ user.email }}"></div>
+      <button class="btn btn-primary">Save changes</button>
+    </div>
+
+    <div class="card" x-show="tab==='api'" x-cloak>
+      <div style="font-weight:700;font-size:15px">Data Sources</div>
+      <div class="kicker mt-2">All free — no keys required</div>
+      <table class="forge mt-3">
+        <thead><tr><th>Source</th><th>Endpoint</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td class="cell-title">Nominatim</td><td class="mono muted">nominatim.openstreetmap.org</td><td><span class="badge ok"><span class="dot green"></span> Active</span></td></tr>
+          <tr><td class="cell-title">Overpass</td><td class="mono muted">overpass-api.de</td><td><span class="badge ok"><span class="dot green"></span> Active</span></td></tr>
+          <tr><td class="cell-title">AI Enrichment</td><td class="mono muted">OpenAI-compatible</td><td><span class="badge run">Optional</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" x-show="tab==='export'" x-cloak>
+      <div style="font-weight:700;font-size:15px">Export Preferences</div>
+      <div class="field mt-3"><label class="kicker">Default format</label>
+        <select class="input"><option>Excel (.xlsx)</option><option>CSV (.csv)</option></select>
+      </div>
+      <div class="field"><label class="kicker">Default lead count</label>
+        <select class="input"><option>50</option><option>100</option><option>200</option><option>All</option></select>
+      </div>
+      <button class="btn btn-primary">Save</button>
+    </div>
+
+    <div class="card" x-show="tab==='theme'" x-cloak>
+      <div style="font-weight:700;font-size:15px">Appearance</div>
+      <div class="kicker mt-2">Operator Terminal (dark) is the default theme.</div>
+      <div class="row mt-3">
+        <div class="card source-card sel" style="width:140px"><div style="height:40px;border-radius:6px;background:linear-gradient(135deg,#0c0d10,#16181d);border:1px solid var(--primary)"></div><div class="kicker mt-2">Operator Dark</div></div>
+        <div class="card source-card" style="width:140px"><div style="height:40px;border-radius:6px;background:#f4f6fb"></div><div class="kicker mt-2">Light (soon)</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

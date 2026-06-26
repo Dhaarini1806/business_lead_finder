@@ -88,6 +88,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "leads.context_processors.branding",
             ],
         },
     },
@@ -207,6 +208,11 @@ OSM_HTTP_TIMEOUT = int(os.environ.get("OSM_HTTP_TIMEOUT", "20"))
 OSM_CACHE_TIMEOUT = int(os.environ.get("OSM_CACHE_TIMEOUT", str(60 * 60 * 6)))
 # Default search radius (meters) around the geocoded location.
 OSM_SEARCH_RADIUS = int(os.environ.get("OSM_SEARCH_RADIUS", "8000"))
+
+# Branding shown across the Forge OS UI.
+BRAND_NAME = os.environ.get("BRAND_NAME", "FORGE.OS")
+BRAND_WORKSPACE = os.environ.get("BRAND_WORKSPACE", "Lead Intelligence")
+BRAND_VERSION = os.environ.get("BRAND_VERSION", "Operator v2.4")
 
 
 # --------------------------------------------------------------------------- #

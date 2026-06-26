@@ -48,6 +48,7 @@ class BusinessRecord:
     longitude: float | None = None
     phone: str = ""
     website: str = ""
+    email: str = ""
 
     def as_dict(self) -> dict:
         return {
@@ -60,6 +61,7 @@ class BusinessRecord:
             "longitude": self.longitude,
             "phone": self.phone,
             "website": self.website,
+            "email": self.email,
         }
 
 
@@ -305,6 +307,12 @@ def _parse_element(element: dict, fallback_category: str) -> BusinessRecord | No
         or ""
     )
 
+    email = (
+        tags.get("email")
+        or tags.get("contact:email")
+        or ""
+    )
+
     return BusinessRecord(
         osm_type=element.get("type", ""),
         osm_id=element.get("id"),
@@ -315,6 +323,7 @@ def _parse_element(element: dict, fallback_category: str) -> BusinessRecord | No
         longitude=float(lon) if lon is not None else None,
         phone=phone.strip()[:64],
         website=website.strip()[:400],
+        email=email.strip()[:254],
     )
 
 
@@ -360,6 +369,7 @@ def fetch_businesses(
     business_type: str,
     location: str,
     radius: int | None = None,
+    max_results: int | None = None,
 ) -> SearchOutcome:
     """
     High-level entry point: geocode the location then fetch businesses.
@@ -380,7 +390,8 @@ def fetch_businesses(
     outcome.geocode = geo
 
     cache_key = _cache_key(
-        "biz", f"{business_type.lower()}|{location.lower()}|{radius}"
+        "biz",
+        f"{business_type.lower()}|{location.lower()}|{radius}|{max_results}",
     )
     cached = cache.get(cache_key)
     if cached is not None:
@@ -410,6 +421,8 @@ def fetch_businesses(
     ]
     records = _dedupe(records)
     records.sort(key=lambda r: r.name.lower())
+    if max_results:
+        records = records[: int(max_results)]
 
     outcome.businesses = records
     cache.set(
